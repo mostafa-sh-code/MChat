@@ -1,0 +1,19 @@
+{
+    "users": {
+        "Mostafa": "1234",
+        "2Mostafa": "1234",
+        "Moatafa": "1234"
+    },
+    "posts": [
+        {
+            "username": "Mostafa",
+            "title": "اولین پست",
+            "content": "محتوای چرت و پرت"
+        },
+        {
+            "username": "Moatafa",
+            "title": "دومین پست",
+            "content": "خطای ورود رفع شد"
+        }
+    ]
+}

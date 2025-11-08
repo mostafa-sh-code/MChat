@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mostafa</title>
+
+<!-- Fonts & icons -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
+
+<!-- three.js from CDN -->
+<script src="https://unpkg.com/three@0.154.0/build/three.min.js"></script>
+
+<style>
+  :root{
+    --accent:#00e0ff;
+    --accent-2:#00b0ff;
+    --bg-dark:#05060a;
+    --bg-light:#eef7ff;
+    --glass-dark: rgba(255,255,255,0.04);
+    --glass-light: rgba(0,0,0,0.06);
+  }
+  [data-theme="dark"]{--bg:var(--bg-dark);--text:#eaf6ff;--glass:var(--glass-dark);}
+  [data-theme="light"]{--bg:var(--bg-light);--text:#071022;--glass:var(--glass-light);}
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{background:var(--bg);color:var(--text);overflow-x:hidden;transition:background .5s,color .5s;}
+  /* canvas background sits full screen */
+  #bg3d { position:fixed; inset:0; z-index:0; display:block; }
+  /* header */
+  header{position:fixed;top:18px;left:24px;right:24px;display:flex;justify-content:space-between;align-items:center;z-index:30;pointer-events:none}
+  .brand{pointer-events:auto;display:flex;align-items:center;gap:18px}
+  .logo{
+    font-weight:900; font-size:34px; letter-spacing:1px;
+    color:var(--accent); text-shadow:0 6px 18px rgba(0,176,255,0.12), 0 0 28px rgba(0,224,255,0.08);
+    transform-style:preserve-3d; transition:transform .35s;
+    -webkit-font-smoothing:antialiased;
+  }
+  .subtag{font-size:12px;color:rgba(255,255,255,0.6);opacity:.85}
+  /* controls (right) */
+  .controls{pointer-events:auto;display:flex;gap:12px;align-items:center}
+  .btn {
+    display:inline-flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;
+    backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,0.03);
+    background:transparent;color:var(--text);cursor:pointer;font-weight:600;font-size:14px;
+    transition:transform .18s, box-shadow .18s, background .18s;
+  }
+  .btn:active{transform:translateY(2px)}
+  .btn.glow{box-shadow:0 8px 30px rgba(0,176,255,0.12);border-color:rgba(0,176,255,0.25)}
+  .btn.icon{padding:10px;border-radius:10px;width:46px;height:46px;justify-content:center}
+  .theme-toggle{font-size:18px}
+  /* main container content */
+  main{position:relative;z-index:10;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:110px 22px 80px}
+  .stage{
+    width:min(1100px,94%);max-width:1200px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:20px;padding:36px;backdrop-filter: blur(8px);box-shadow: 0 40px 110px rgba(2,6,23,0.6);
+    display:grid;grid-template-columns: 1fr 420px;gap:28px;align-items:center;
+  }
+  /* left big hero */
+  .hero{
+    padding:10px 6px;
+  }
+  .hero .title{
+    font-size:48px;font-weight:900;line-height:1.02;color:var(--accent);
+    margin-bottom:12px;text-shadow:0 8px 40px rgba(0,176,255,0.08);
+  }
+  .hero .lead{font-size:16px;color:var(--text);opacity:.95;margin-bottom:20px}
+  .hero .cta-row{display:flex;gap:12px;align-items:center}
+  .primary{
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    color:#001019;padding:14px 20px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;border:none;
+    box-shadow:0 20px 60px rgba(0,176,255,0.12);
+  }
+  .secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:12px 16px;border-radius:12px;color:var(--text);cursor:pointer}
+  .muted{font-size:12px;color:rgba(255,255,255,0.6);margin-top:18px}
+  /* right column (panel) */
+  .panel{padding:18px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);display:flex;flex-direction:column;gap:14px;align-items:stretch}
+  .panel .item{display:flex;gap:12px;align-items:center;padding:12px;border-radius:10px;transition:transform .25s, box-shadow .25s}
+  .panel .item:hover{transform:translateY(-6px);box-shadow:0 18px 50px rgba(0,0,0,0.45)}
+  .avatar{width:68px;height:68px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#6ad6ff);display:flex;align-items:center;justify-content:center;font-weight:800;color:#001019}
+  .item .meta{flex:1}
+  .meta .name{font-weight:800}
+  .meta .small{font-size:13px;color:rgba(255,255,255,0.75)}
+  .link-row{display:flex;gap:10px;margin-top:8px}
+  .pill{padding:8px 10px;border-radius:8px;background:rgba(0,0,0,0.25);font-weight:600;color:var(--accent);font-size:13px}
+  /* footer actions */
+  .actions{display:flex;gap:12px;align-items:center;justify-content:flex-end;margin-top:12px}
+  .notice{font-size:12px;color:rgba(255,255,255,0.6)}
+  /* small screens */
+  @media (max-width:960px){
+    .stage{grid-template-columns:1fr; padding:22px}
+    .logo{font-size:28px}
+    .hero .title{font-size:36px}
+  }
+</style>
+</head>
+<body data-theme="dark">
+
+<canvas id="bg3d"></canvas>
+
+<header>
+  <div class="brand">
+    <div class="logo" id="logo">Mostafa</div>
+    <div style="display:flex;flex-direction:column">
+      <div class="subtag">Interactive Experience</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn icon glow" id="explosionBtn" title="Particle Burst" style="pointer-events:auto"><i class="ri-flashlight-line"></i></button>
+    <button class="btn icon" id="snapshotBtn" title="Download Snapshot" style="pointer-events:auto"><i class="ri-arrow-down-line"></i></button>
+    <button class="btn icon" id="teleBtn" title="Open Telegram" style="pointer-events:auto"><i class="ri-telegram-fill"></i></button>
+    <button class="btn theme-toggle" id="themeBtn" title="Toggle theme" style="pointer-events:auto"><i class="ri-moon-line"></i></button>
+  </div>
+</header>
+
+<main>
+  <div class="stage" role="main" aria-labelledby="logo">
+    <div class="hero" aria-hidden="false">
+      <div class="title">Mostafa — Interactive Showcase</div>
+      <div class="lead">A full client-side, WebGL-powered interactive landing experience. Move your mouse, click the magic button, take snapshots, toggle theme — pure front-end power.</div>
+
+      <div class="cta-row">
+        <button class="primary" id="magicBtn">Do Something Magic</button>
+        <button class="secondary" id="tourBtn">Quick Tour</button>
+      </div>
+
+      <div class="muted">No forms. No servers. Everything runs in your browser — optimized and fast.</div>
+
+      <div style="margin-top:22px;display:flex;gap:12px;flex-wrap:wrap">
+        <div class="pill">WebGL Particles</div>
+        <div class="pill">Neon Logo</div>
+        <div class="pill">Snapshot Download</div>
+        <div class="pill">Telegram Link</div>
+        <div class="pill">Theme Toggle</div>
+      </div>
+    </div>
+
+    <aside class="panel" aria-label="Quick actions">
+      <div class="item">
+        <div class="avatar">M</div>
+        <div class="meta">
+          <div class="name">Mostafa</div>
+          <div class="small">Interactive demo — client-side only</div>
+          <div class="link-row">
+            <a class="btn" id="openGit" style="pointer-events:auto"><i class="ri-github-fill"></i> GitHub</a>
+            <a class="btn" id="openLinked" style="pointer-events:auto"><i class="ri-linkedin-box-fill"></i> LinkedIn</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="item" id="floatingInfo">
+        <div style="width:46px;height:46px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:#001019;font-weight:800">i</div>
+        <div class="meta">
+          <div class="name">Live Info</div>
+          <div class="small" id="fps">FPS: --</div>
+          <div class="small" id="mousePos">Mouse: --</div>
+        </div>
+      </div>
+
+      <div class="item" title="Snapshot">
+        <div style="width:46px;height:46px;border-radius:10px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center"><i class="ri-image-line"></i></div>
+        <div class="meta">
+          <div class="name">Snapshot</div>
+          <div class="small">Capture the canvas to a PNG file</div>
+          <div style="margin-top:10px" class="link-row">
+            <button class="btn" id="saveSnapshot">Save PNG</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <div class="notice">No backend — privacy first.</div>
+      </div>
+    </aside>
+
+  </div>
+</main>
+
+<script>
+/* ----------------------
+  WebGL background (three.js) - particle field + sine wave plane
+  optimized for portability (single-file), no external assets
+-----------------------*/
+const canvas = document.getElementById('bg3d');
+let renderer, scene, camera, particlesMesh, planeMesh, clock;
+let mouse = {x:0,y:0};
+let WIDTH = window.innerWidth, HEIGHT = window.innerHeight;
+const PARTICLE_COUNT = 3000;
+
+function init3D(){
+  renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(WIDTH, HEIGHT);
+  renderer.setClearColor(0x000000, 0); // alpha background
+
+  scene = new THREE.Scene();
+  clock = new THREE.Clock();
+
+  camera = new THREE.PerspectiveCamera(55, WIDTH/HEIGHT, 0.1, 2000);
+  camera.position.set(0, 40, 120);
+
+  // particle geometry
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(PARTICLE_COUNT*3);
+  const sizes = new Float32Array(PARTICLE_COUNT);
+  for(let i=0;i<PARTICLE_COUNT;i++){
+    const i3 = i*3;
+    positions[i3+0] = (Math.random()-0.5)*400;
+    positions[i3+1] = (Math.random()-0.5)*200;
+    positions[i3+2] = (Math.random()-0.5)*400;
+    sizes[i] = Math.random()*3+0.5;
+  }
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+  // basic shader material for particles
+  const material = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    uniforms:{
+      uTime: {value:0.0},
+      uColor: {value: new THREE.Color(0x00e0ff)}
+    },
+    vertexShader: `
+      attribute float size;
+      uniform float uTime;
+      varying float vDepth;
+      void main(){
+        vec3 pos = position;
+        float wave = sin((pos.x + uTime*40.0)*0.01) * 6.0;
+        pos.y += wave;
+        vDepth = -pos.z;
+        vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+        gl_PointSize = size * (120.0 / -mvPosition.z);
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uColor;
+      varying float vDepth;
+      void main(){
+        float d = length(gl_PointCoord - vec2(0.5));
+        float alpha = 1.0 - smoothstep(0.35, 0.5, d);
+        vec3 c = uColor * (0.5 + 0.5* (1.0 - vDepth*0.002));
+        gl_FragColor = vec4(c, alpha);
+      }
+    `
+  });
+
+  particlesMesh = new THREE.Points(geometry, material);
+  scene.add(particlesMesh);
+
+  // floating reflective plane (subtle wave)
+  const planeGeo = new THREE.PlaneGeometry(800,800,80,80);
+  const planeMat = new THREE.MeshStandardMaterial({color:0x001122, transparent:true, opacity:0.06, metalness:0.6, roughness:0.6});
+  planeMesh = new THREE.Mesh(planeGeo, planeMat);
+  planeMesh.rotation.x = -Math.PI/2;
+  planeMesh.position.y = -60;
+  scene.add(planeMesh);
+
+  // subtle light
+  const dir = new THREE.DirectionalLight(0x55aaff, 0.6);
+  dir.position.set(0,200,100);
+  scene.add(dir);
+  const amb = new THREE.AmbientLight(0xaaaaee, 0.4);
+  scene.add(amb);
+
+  window.addEventListener('resize', onResize);
+  document.addEventListener('pointermove', onPointerMove);
+  animate();
+}
+
+function animate(){
+  const t = clock.getElapsedTime();
+  // update shader time
+  particlesMesh.material.uniforms.uTime.value = t;
+  // wave plane vertices
+  const pos = planeMesh.geometry.attributes.position;
+  for(let i=0;i<pos.count;i++){
+    const ix = i*3;
+    const x = pos.array[ix], z = pos.array[ix+2];
+    pos.array[ix+1] = Math.sin((x*0.02 + t*1.6)) * 3.5 + Math.cos((z*0.02 + t*1.2)) * 2.2;
+  }
+  pos.needsUpdate = true;
+  // parallax camera slight move based on mouse
+  camera.position.x += (mouse.x*60 - camera.position.x) * 0.06;
+  camera.position.y += (-mouse.y*20 + 30 - camera.position.y) * 0.06;
+  camera.lookAt(0,0,0);
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+
+function onResize(){
+  WIDTH = window.innerWidth; HEIGHT = window.innerHeight;
+  renderer.setSize(WIDTH, HEIGHT);
+  camera.aspect = WIDTH/HEIGHT;
+  camera.updateProjectionMatrix();
+}
+
+function onPointerMove(e){
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
+  // update floating info
+  const fpsEl = document.getElementById('fps');
+  const mposEl = document.getElementById('mousePos');
+  if(fpsEl) {
+    // lightweight FPS approx via frame time
+    fpsEl.textContent = 'Mouse X:' + Math.round((mouse.x+1)*50) + ' Y:' + Math.round((mouse.y+1)*50);
+    mposEl.textContent = `x:${Math.round(e.clientX)}, y:${Math.round(e.clientY)}`;
+  }
+  // small 3D sway on logo
+  const logo = document.getElementById('logo');
+  if(logo){
+    const rx = (mouse.y * 6).toFixed(2);
+    const ry = (mouse.x * 12).toFixed(2);
+    logo.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) translateZ(6px)`;
+  }
+}
+
+/* ----------------------
+  Interactive controls
+-----------------------*/
+document.getElementById('teleBtn').addEventListener('click', ()=> {
+  // safe open telegram link
+  window.open('https://t.me/+989036394027', '_blank');
+});
+document.getElementById('openGit').addEventListener('click', ()=> window.open('https://github.com/', '_blank'));
+document.getElementById('openLinked').addEventListener('click', ()=> window.open('https://www.linkedin.com/', '_blank'));
+
+document.getElementById('themeBtn').addEventListener('click', ()=> {
+  const body = document.body;
+  const icon = document.querySelector('.theme-toggle i');
+  if(body.getAttribute('data-theme') === 'dark'){ body.setAttribute('data-theme','light'); icon.className='ri-sun-line'; }
+  else { body.setAttribute('data-theme','dark'); icon.className='ri-moon-line'; }
+});
+
+document.getElementById('explosionBtn').addEventListener('click', ()=> {
+  // temporary particle burst: create ephemeral particles that expand
+  createBurst();
+});
+
+function createBurst(){
+  const burstCount = 180;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(burstCount*3);
+  const velocities = new Float32Array(burstCount*3);
+  for(let i=0;i<burstCount;i++){
+    const i3 = i*3;
+    positions[i3+0] = (Math.random()-0.5)*20;
+    positions[i3+1] = (Math.random()-0.5)*20 + 10;
+    positions[i3+2] = (Math.random()-0.5)*20;
+    velocities[i3+0] = (Math.random()-0.5)*8;
+    velocities[i3+1] = (Math.random()-0.5)*8;
+    velocities[i3+2] = (Math.random()-0.5)*8;
+  }
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions,3));
+  geometry.setAttribute('vel', new THREE.BufferAttribute(velocities,3));
+  const mat = new THREE.PointsMaterial({color:0x00e0ff,size:3,transparent:true,opacity:0.95,blending:THREE.AdditiveBlending});
+  const points = new THREE.Points(geometry, mat);
+  scene.add(points);
+
+  let life = 0;
+  const burstAnim = ()=>{
+    life += 0.02;
+    const posAttr = points.geometry.attributes.position;
+    const velAttr = points.geometry.attributes.vel;
+    for(let i=0;i<posAttr.count;i++){
+      const idx = i*3;
+      velAttr.array[idx+1] -= 0.12; // gravity
+      posAttr.array[idx+0] += velAttr.array[idx+0]*0.6;
+      posAttr.array[idx+1] += velAttr.array[idx+1]*0.6;
+      posAttr.array[idx+2] += velAttr.array[idx+2]*0.6;
+    }
+    posAttr.needsUpdate = true;
+    if(life < 2.5) requestAnimationFrame(burstAnim);
+    else { scene.remove(points); points.geometry.dispose(); mat.dispose(); }
+  };
+  burstAnim();
+}
+
+/* Snapshot */
+function snapshot(){
+  try{
+    const link = document.createElement('a');
+    link.download = 'mostafa-snapshot.png';
+    renderer.domElement.toBlob(function(blob){
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+      link.click();
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  }catch(err){
+    // fallback: use canvas.toDataURL if toBlob not supported
+    const dataURL = renderer.domElement.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href = dataURL; link.download = 'mostafa-snapshot.png'; link.click();
+  }
+}
+document.getElementById('snapshotBtn').addEventListener('click', snapshot);
+document.getElementById('saveSnapshot').addEventListener('click', snapshot);
+
+/* Magic button - toggles a short dramatic effect: color pulse + camera push */
+document.getElementById('magicBtn').addEventListener('click', ()=>{
+  const originalAccent = getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#00e0ff';
+  // pulse screen: temporarily change CSS variable (via inline style)
+  const stage = document.querySelector('.stage');
+  stage.animate([{filter:'brightness(1)'},{filter:'brightness(1.35) saturate(1.2)'},{filter:'brightness(1)'}], {duration:900, easing:'ease-in-out'});
+  // small camera push
+  const origZ = camera.position.z;
+  const push = 30;
+  let t = 0;
+  const pushAnim = ()=>{
+    t += 0.04;
+    camera.position.z = origZ - Math.sin(t*Math.PI)*push;
+    if(t < 1) requestAnimationFrame(pushAnim);
+    else camera.position.z = origZ;
+  };
+  pushAnim();
+  // small info flash
+  const inf = document.getElementById('floatingInfo');
+  inf.animate([{transform:'translateY(0)',opacity:1},{transform:'translateY(-12px)',opacity:0.92},{transform:'translateY(0)',opacity:1}],{duration:900});
+});
+
+/* Tour button - small guided highlights */
+document.getElementById('tourBtn').addEventListener('click', ()=> {
+  const steps = [
+    {el:document.getElementById('logo'), text:'This is the neon logo — moves with your mouse.'},
+    {el:document.getElementById('magicBtn'), text:'Press "Do Something Magic" for camera and visual pulse.'},
+    {el:document.getElementById('explosionBtn'), text:'Particle Burst — try it!'},
+    {el:document.getElementById('snapshotBtn'), text:'Snapshot saves a PNG of the current canvas.'},
+    {el:document.getElementById('teleBtn'), text:'Open Telegram link.'}
+  ];
+  let idx=0;
+  const highlight = ()=>{
+    if(idx>=steps.length) return;
+    const s = steps[idx];
+    const el = s.el;
+    const box = el.getBoundingClientRect();
+    const p = document.createElement('div');
+    p.style.position='fixed';
+    p.style.left=(box.left)+'px';
+    p.style.top=(box.bottom+8)+'px';
+    p.style.padding='10px 14px';
+    p.style.background='linear-gradient(90deg, rgba(0,176,255,0.18), rgba(0,176,255,0.06))';
+    p.style.backdropFilter='blur(6px)';
+    p.style.borderRadius='10px';
+    p.style.zIndex='120';
+    p.style.color='white';
+    p.style.fontWeight='600';
+    p.style.fontSize='13px';
+    p.textContent = s.text;
+    document.body.appendChild(p);
+    setTimeout(()=>{ p.remove(); idx++; highlight(); }, 1800);
+  };
+  highlight();
+});
+
+/* quick FPS monitor (very light) */
+let last = performance.now(), frames=0;
+function fpsTick(){
+  const now = performance.now();
+  frames++;
+  if(now - last >= 1000){
+    const fps = Math.round((frames*1000)/(now-last));
+    const el = document.getElementById('fps');
+    if(el) el.textContent = 'FPS: ' + fps;
+    frames = 0; last = now;
+  }
+  requestAnimationFrame(fpsTick);
+}
+fpsTick();
+
+/* initialize */
+init3D();
+
+</script>
+</body>
+</html>

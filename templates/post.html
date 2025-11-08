@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>نوشتن پست جدید</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f8f9fa;
+            text-align: center;
+            padding-top: 50px;
+        }
+        form {
+            background-color: white;
+            display: inline-block;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        input, textarea {
+            display: block;
+            margin: 10px auto;
+            padding: 8px;
+            width: 300px;
+        }
+        button {
+            padding: 8px 20px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1e7e34;
+        }
+        .posts {
+            margin-top: 30px;
+        }
+        .post {
+            background: #fff;
+            border-radius: 12px;
+            margin: 10px auto;
+            padding: 15px;
+            width: 350px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+<a href="/logout" style="position: absolute; top: 20px; left: 20px; color: white; text-decoration: none; background: rgba(255,0,0,0.7); padding: 8px 15px; border-radius: 10px;">خروج</a>
+
+    <h1>نوشتن پست جدید</h1>
+
+    <form method="POST" action="/post">
+        <input type="text" name="title" placeholder="عنوان پست" required>
+        <textarea name="content" placeholder="محتوای پست" rows="5" required></textarea>
+        <button type="submit">ارسال پست</button>
+    </form>
+
+    <div class="posts">
+        <h2>📝 پست‌های شما:</h2>
+        {% for post in posts %}
+            <div class="post">
+                <h3>{{ post.title }}</h3>
+                <p>{{ post.content }}</p>
+            </div>
+        {% endfor %}
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>ارسال پست</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "Vazirmatn", sans-serif;
+            background: linear-gradient(135deg, #7abaff, #b3e0ff);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        form {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-radius: 20px;
+            padding: 40px 30px;
+            width: 400px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            text-align: center;
+            color: #0b1d33;
+            margin-bottom: 20px;
+        }
+
+        input, textarea {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+            background: rgba(255,255,255,0.3);
+            color: #0b1d33;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(0,102,255,0.9);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: rgba(0,102,255,1);
+        }
+
+        a {
+            display: block;
+            margin-top: 15px;
+            text-align: center;
+            color: #0b1d33;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <form method="POST" action="/post">
+        <h1>ارسال پست جدید</h1>
+        <input type="text" name="title" placeholder="عنوان پست" required>
+        <textarea name="content" rows="6" placeholder="محتوای پست" required></textarea>
+        <button type="submit">ارسال پست</button>
+        <a href="/">بازگشت به صفحه اصلی</a>
+    </form>
+
+</body>
+</html>
